@@ -14,7 +14,7 @@ import {
   Platform
 } from 'react-native';
 import { launchImageLibrary, launchCamera, ImageLibraryOptions } from 'react-native-image-picker';
-import DatabaseService from '../db/DatabaseServices';
+import DatabaseService from '../backend/DatabaseServices';
 import TextUI from '../components/TextUI';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faImage } from '@fortawesome/free-solid-svg-icons';

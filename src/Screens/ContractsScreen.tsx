@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import DatabaseService, { Contract } from '../db/DatabaseServices';
+import DatabaseService, { Contract } from '../backend/DatabaseServices';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
  faBackspace,

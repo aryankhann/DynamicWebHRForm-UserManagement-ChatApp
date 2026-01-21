@@ -10,7 +10,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-import DatabaseService, { User } from '../db/DatabaseServices';
+import DatabaseService, { User } from '../backend/DatabaseServices';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faAngleLeft, faPhone } from '@fortawesome/free-solid-svg-icons';
 import TextUI from '../components/TextUI';

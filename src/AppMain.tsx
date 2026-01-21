@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from './Screens/Login';
 import FormScreen from './Screens/FormScreen';
-import DatabaseServices from './db/DatabaseServices';
+import DatabaseServices from './backend/DatabaseServices';
 import AddForm from './Screens/AddForm';
 import EditForm from './Screens/EditForm';
 import ContractScreen from './Screens/ContractsScreen';
@@ -11,6 +11,7 @@ import ViewForm from './Screens/ViewForm';
 import AdminDashboard from './Screens/AdminDashboard';
 import UserManagementScreen from './Screens/UserManagement';
 import { AddUserScreen, EditUserScreen } from './Screens/AddEditUser';
+import ChatApp from './Screens/ChatApp';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -23,7 +24,7 @@ export type RootStackParamList = {
   UserManagement:undefined,
   AdminDashboard:undefined
 EditUser:undefined
-
+ChatApp:undefined
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -76,6 +77,11 @@ const AppMain = () => {
 <Stack.Screen 
   name="EditUser" 
   component={EditUserScreen}
+  options={{ headerShown:false }}
+/>
+<Stack.Screen 
+  name="ChatApp" 
+  component={ChatApp}
   options={{ headerShown:false }}
 />
         <Stack.Screen 

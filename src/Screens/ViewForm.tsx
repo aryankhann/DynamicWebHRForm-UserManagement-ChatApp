@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, ActivityIndicator, View, Text, StyleSheet } from 'react-native';
 import ContractForm from '../components/ContractForm';
-import DatabaseService from '../db/DatabaseServices';
+import DatabaseService from '../backend/DatabaseServices';
 import TextUI from '../components/TextUI';
 
 

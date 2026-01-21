@@ -14,7 +14,7 @@ import Listbox from "../components/Listbox";
 import DateComponent from "../components/DateComponent";
 import TextArea from "../components/TextArea";
 import DocumentAttach from "../components/DocumentAttach";
-import DatabaseServices from "../db/DatabaseServices";
+import DatabaseServices from "../backend/DatabaseServices";
 import ContractForm from "../components/ContractForm";
 
 
