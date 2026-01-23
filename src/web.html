@@ -11,13 +11,41 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io("http://localhost:3000",{
+    const socket = io("http://localhost:3000");
+    const input = document.getElementById('input');  
+    const roomCode = 'h4'; 
+    
+    let lastTypingTime = 0;
+    let stopTypingTime = null;
+
+    socket.on('connect', () => {
+      socket.emit('joinRoom', roomCode);
+    });
+
+    input.addEventListener("input", () => {
+      const now = Date.now();
+
+      if (now - lastTypingTime > 3000) {
+        socket.emit('typing', true, 'other', roomCode);
+        lastTypingTime = now;
+      }
       
+      if (stopTypingTime) {
+        clearTimeout(stopTypingTime);
+      }
+      
+      stopTypingTime = setTimeout(() => {
+        console.log('stop')
+        socket.emit('stoppedTyping', false,'other',roomCode);
+      }, 3000);
     });
 
     function send() {
       const text = document.getElementById("input").value;
-      socket.emit("sendMessage", text); 
+      socket.emit("sendMessage", {
+        roomCode, 
+        message: text
+      }); 
     }   
 
     socket.on("receiveMessage", (msg) => {

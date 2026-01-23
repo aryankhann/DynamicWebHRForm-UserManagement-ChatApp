@@ -147,7 +147,7 @@ const socket = io("http://localhost:3000",{
         <View style={{ height: '30%', justifyContent: 'flex-end' }}>
           <TouchableOpacity
             style={styles.chatAppButton}
-            onPress={() => {navigation.navigate('ChatApp')}}
+            onPress={() => {navigation.navigate('ChatMenu')}}
             disabled={loading}
           >
             <FontAwesomeIcon icon={faComments} size={28} color="#ffffff" style={{ marginRight: 16 }} />

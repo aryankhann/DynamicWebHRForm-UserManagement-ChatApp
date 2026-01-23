@@ -12,7 +12,7 @@ import AdminDashboard from './Screens/AdminDashboard';
 import UserManagementScreen from './Screens/UserManagement';
 import { AddUserScreen, EditUserScreen } from './Screens/AddEditUser';
 import ChatApp from './Screens/ChatApp';
-
+import ChatMenu from './Screens/ChatMenu';
 export type RootStackParamList = {
   Login: undefined;
   FormScreen: { username: string };
@@ -25,6 +25,7 @@ export type RootStackParamList = {
   AdminDashboard:undefined
 EditUser:undefined
 ChatApp:undefined
+ChatMenu:undefined
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -82,6 +83,11 @@ const AppMain = () => {
 <Stack.Screen 
   name="ChatApp" 
   component={ChatApp}
+  options={{ headerShown:false }}
+/>
+<Stack.Screen 
+  name="ChatMenu" 
+  component={ChatMenu}
   options={{ headerShown:false }}
 />
         <Stack.Screen 

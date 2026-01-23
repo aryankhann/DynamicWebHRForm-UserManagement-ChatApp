@@ -19,12 +19,31 @@ io.on("connection", (socket) => {
     socket.to(roomCode).emit("receiveMessage", message);
   });
 
+  socket.on("typing",(typing,user,room)=>{
+    socket.to(room).emit('UserTyping',{
+     typing:typing,
+     user:user,
+     room:room
+    })
+    console.log({typing,user,room},'typing detected')
+  })
+socket.on('stoppedTyping',(typing,user,room)=>{
+  socket.to(room).emit('UserNotTyping',{
+    typing:typing,
+    user:user,
+    room:room
+  })
+      console.log({typing,user,room},'typing stopped')
+
+})
+
   socket.on("joinRoom", (roomCode) => {
     socket.join(roomCode);
     console.log(`${socket.id} has joined room ${roomCode}`);
     
     socket.to(roomCode).emit("userJoined", socket.id);
   });
+
 
   socket.on("leaveRoom", (roomCode) => {
     socket.leave(roomCode);
@@ -36,8 +55,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  console.log("User disconnected:", socket.id);
+});
+
+socket.on("connect", () => {
+  console.log("Reconnected:", socket.id);
+});
 });
 
 server.listen(3000, () => {
