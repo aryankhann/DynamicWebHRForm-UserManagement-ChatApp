@@ -35,7 +35,7 @@ const AppMain = () => {
     const setupDatabase = async () => {
       await DatabaseServices.init();
     
-     
+    
       // try {
       //   await DatabaseServices.registerUser('testuser', 'password123');
       // } catch (error) {

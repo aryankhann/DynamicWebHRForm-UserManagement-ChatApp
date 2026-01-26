@@ -116,13 +116,15 @@ console.log('role: ',userRegister)
         role: formData.role,
       });
 
+      if(!userId){
+        Alert.alert('Failed, user already exists')
+        return
+      }
       if (userId) {
         Alert.alert('Success', 'User created successfully!', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
-      } else {
-        Alert.alert('Error', 'Email already exists or failed to create user');
-      }
+      } 
     } catch (error) {
       console.error('Error creating user:', error);
       Alert.alert('Error', 'Failed to create user');
@@ -156,7 +158,7 @@ console.log('role: ',userRegister)
           </TouchableOpacity>
          
         </View>
-
+          
         <View style={styles.inputGroup}>
           <TextUI text='Name' style={styles.label}>
              <Text style={styles.required}>*</Text>
@@ -672,6 +674,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: '600',
     color: 'white',
+    textAlign:'center'
   },
   imagePickerButton: {
     backgroundColor: '#0C64AE',

@@ -145,7 +145,7 @@ const ChatApp = ({ navigation, route }: any) => {
         <TouchableOpacity style={{ width: '40%' }}>
           <ButtonBlue 
             text="leave chat room" 
-            onNext={() => { handleDisconnect(); navigation.goBack(); }} 
+            onNext={() => { handleDisconnect(); navigation.navigate('ChatMenu'); }} 
             style={{ width: '100%', marginTop: 10, borderRadius: 5, right: 10 }}
           />
         </TouchableOpacity>

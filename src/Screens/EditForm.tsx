@@ -8,7 +8,8 @@ const EditForm = ({ navigation, route }: any) => {
   const { contractId } = route.params;
   const [initialData, setInitialData] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
-
+const {approved,toggle } =route.params
+console.log('toggle in editform screen',toggle)
   useEffect(() => {
     loadContract();
   }, [contractId]);
@@ -105,6 +106,11 @@ const EditForm = ({ navigation, route }: any) => {
       ]
     );
   };
+  const approvedGoBack = () =>{
+
+    navigation.goBack()
+    
+  }
 
   if (loading) {
     return (
@@ -119,9 +125,12 @@ const EditForm = ({ navigation, route }: any) => {
     <ContractForm
       mode="edit"
       contractId={contractId}
+      approved={approved}
+      toggle={toggle}
       initialData={initialData || {}}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
+      onApprovedCancel={approvedGoBack}
     />
   );
 };

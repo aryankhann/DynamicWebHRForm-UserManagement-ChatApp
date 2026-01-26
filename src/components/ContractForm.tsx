@@ -4,7 +4,8 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  ActivityIndicator,TouchableOpacity
+  ActivityIndicator,
+  TouchableOpacity
 } from "react-native";
 import ButtonBlue from "../components/ButtonBlue";
 import { useState, useEffect } from "react";
@@ -14,9 +15,10 @@ import Listbox from "../components/Listbox";
 import DateComponent from "../components/DateComponent";
 import TextArea from "../components/TextArea";
 import DocumentAttach from "../components/DocumentAttach";
-import { faAngleLeft,faAngleRight, faPaperclip } from "@fortawesome/free-solid-svg-icons";
+import { faAngleLeft, faAngleRight, faPaperclip, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
+
 interface FormSection {
   Category: string;
   Data: FormField[];
@@ -34,32 +36,41 @@ interface FormField {
 
 interface ApiResponse {
   Status: number;
-  Data: FormSection[];
+  Data?: FormSection[];
   Instructions?: string;
   AdditionalParams?: any;
+  Message?: string;
 }
 
 interface ContractFormProps {
   mode: 'add' | 'edit' | 'view';
   contractId?: number;
   initialData?: Record<string, any>;
+  toggle?: boolean;
+  approved?:boolean,
   onSubmit: (formData: Record<string, any>, documents: any[]) => void;
   onCancel?: () => void;
+  onApprovedCancel?: () =>void;
 }
 
 const ContractForm = ({ 
   mode, 
   contractId, 
-  initialData, 
+  initialData,
+  toggle, 
   onSubmit, 
-  onCancel 
+  onCancel,
+  approved,
+  onApprovedCancel
 }: ContractFormProps) => {
   const [formData, setFormData] = useState<Record<string, any>>(initialData || {});
   const [formSections, setFormSections] = useState<FormSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDocuments, setSelectedDocuments] = useState<any[]>([]);
   const [employeeData, setEmployeeData] = useState<Record<number, any[]>>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const toggleValue = approved;
   const isViewMode = mode === 'view';
 
   useEffect(() => {
@@ -141,10 +152,24 @@ const ContractForm = ({
   const fetchFormConfiguration = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://dev2.webhr.co/mobile/api/?m=Employees_Contracts&type2=details&ac=AddNewRecord&t=nnEwJXWvhteBvnoK7mvaF5lvWOwVGOicV0aoHIXYpD7rxSS9YL3Hk2YG9Ny7LmpmJM9UoH8cG23EJr6wfzuoTxwYwMq4F5ajcRiIpHUSi7Ho79Ub4BcZXDWJRX%2FjbdoVzh3NArf1a2xSLnmOL7K1La2de2vQuA62jnkxV2AwL%2BkFyfKudhDfIZK8ft1DbDsj2NvdQqPfWEy%2FLllFWCpva7ctNodRnSS81aJFPG3auyauTJkd6QGDjWpX6R1khlubgvHlCvWQ%2B7BhGVjArDy5EQ%3D%3D&org=dev2&fins=1');
-      const responseText = await response.text();
+      setErrorMessage(null);
+      console.log('toggle value from contracts screen: ', approved);
       
+      const response = await fetch(toggle ? toggleValue 
+        ? 'https://dev2.webhr.co/mobile/api/?m=Employees_Resignations&type2=details&ac=EditRecord&t=nnEwJXWvhteBvnoK7mvaF5lvWOwVGOicV0aoHIXYpD7rxSS9YL3Hk2YG9Ny7LmpmJM9UoH8cG23EJr6wfzuoTxwYwMq4F5ajcRiIpHUSi7Ho79Ub4BcZXDWJRX%2FjbdoVz7UPbFjlTRjG7Ozl7k7q6ZNeQwWJrAWZAEl7XqzF62m8le5EKV4RM6uyoy57GH56Qn2MTIOZYoY29juti0ToprAFcNTtUuE5msfKb9hJxwBcT4lNxAbSXU2GbQTf0ht7XgS%2BtDm%2Bflof4M5vrHFC%2FA%3D%3D&org=dev2&id=86&fins=1'
+
+        : 'https://dev2.webhr.co/mobile/api/?m=Employees_Contracts&type2=details&ac=AddNewRecord&t=nnEwJXWvhteBvnoK7mvaF5lvWOwVGOicV0aoHIXYpD7rxSS9YL3Hk2YG9Ny7LmpmJM9UoH8cG23EJr6wfzuoTxwYwMq4F5ajcRiIpHUSi7Ho79Ub4BcZXDWJRX%2FjbdoVzh3NArf1a2xSLnmOL7K1La2de2vQuA62jnkxV2AwL%2BkFyfKudhDfIZK8ft1DbDsj2NvdQqPfWEy%2FLllFWCpva7ctNodRnSS81aJFPG3auyauTJkd6QGDjWpX6R1khlubgvHlCvWQ%2B7BhGVjArDy5EQ%3D%3D&org=dev2&fins=1'
+      :'https://dev2.webhr.co/mobile/api/?m=Employees_Contracts&type2=details&ac=AddNewRecord&t=nnEwJXWvhteBvnoK7mvaF5lvWOwVGOicV0aoHIXYpD7rxSS9YL3Hk2YG9Ny7LmpmJM9UoH8cG23EJr6wfzuoTxwYwMq4F5ajcRiIpHUSi7Ho79Ub4BcZXDWJRX%2FjbdoVzh3NArf1a2xSLnmOL7K1La2de2vQuA62jnkxV2AwL%2BkFyfKudhDfIZK8ft1DbDsj2NvdQqPfWEy%2FLllFWCpva7ctNodRnSS81aJFPG3auyauTJkd6QGDjWpX6R1khlubgvHlCvWQ%2B7BhGVjArDy5EQ%3D%3D&org=dev2&fins=1' );
+      
+      const responseText = await response.text();
       const result = extractJsonFromResponse(responseText);
+      
+      if (result && result.Status === 0) {
+        setErrorMessage(result.Message || "Unable to process this request");
+        setLoading(false);
+        return;
+      }
+      
       extractEmployeeData(responseText);
       
       if (result && result.Status === 1 && result.Data) {
@@ -173,7 +198,7 @@ const ContractForm = ({
   };
 
   const handleFieldChange = (fieldName: string, value: any) => {
-    if (isViewMode) return; 
+    if (isViewMode) return;
 
     setFormData((prev) => ({
       ...prev,
@@ -184,13 +209,13 @@ const ContractForm = ({
       const empData = employeeData[value];
       setFormData((prev) => ({
         ...prev,
-        d2: empData[1], 
-        g: empData[2],  
-        s: empData[3],  
-        d: empData[4],  
-        et: empData[5], 
+        d2: empData[1],
+        g: empData[2],
+        s: empData[3],
+        d: empData[4],
+        et: empData[5],
         ec: empData[6],
-        egs: empData[7], 
+        egs: empData[7],
       }));
     }
   };
@@ -296,7 +321,7 @@ const ContractForm = ({
               <View style={styles.documentsList}>
                 {selectedDocuments.map((doc, index) => (
                   <TextUI key={index} text={doc.name} style={styles.documentItem}>
- <FontAwesomeIcon icon={faPaperclip}></FontAwesomeIcon>
+                    <FontAwesomeIcon icon={faPaperclip} />
                   </TextUI>
                 ))}
               </View>
@@ -307,8 +332,8 @@ const ContractForm = ({
         {field.sFieldType === "attachment" && isViewMode && selectedDocuments.length > 0 && (
           <View style={styles.documentsList}>
             {selectedDocuments.map((doc, index) => (
-              <TextUI  text={doc.name} key={index} style={styles.documentItem}>
-                 <FontAwesomeIcon icon={faPaperclip}></FontAwesomeIcon>
+              <TextUI text={doc.name} key={index} style={styles.documentItem}>
+                <FontAwesomeIcon icon={faPaperclip} />
               </TextUI>
             ))}
           </View>
@@ -334,7 +359,7 @@ const ContractForm = ({
 
         {(field.sFieldType === "addedby" || field.sFieldType === "addedon") && (
           <View style={styles.readOnlyField}>
-            <TextUI style={styles.readOnlyText} text={field.sDefaultValue}></TextUI>
+            <TextUI style={styles.readOnlyText} text={field.sDefaultValue} />
           </View>
         )}
       </View>
@@ -345,7 +370,33 @@ const ContractForm = ({
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color="#0C64AE" />
-        <TextUI style={styles.loadingText} text="Loading form..."></TextUI>
+        <TextUI style={styles.loadingText} text="Loading form..." />
+      </View>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity onPress={onApprovedCancel}>
+              <FontAwesomeIcon icon={faAngleLeft as IconProp} size={24} style={{ marginTop: 5 }} />
+            </TouchableOpacity>
+            <TextUI text="Error" style={styles.headerTitle} />
+          </View>
+        </View>
+        <View style={styles.errorContainer}>
+          <View style={[styles.errorBox]}>
+            <FontAwesomeIcon icon={faTriangleExclamation} size={30}></FontAwesomeIcon>
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
+            {onCancel && (
+              <View style={styles.errorButtonContainer}>
+                <ButtonBlue text="Go Back" onNext={onApprovedCancel} />
+              </View>
+            )}
+          </View>
+        </View>
       </View>
     );
   }
@@ -376,13 +427,13 @@ const ContractForm = ({
         stickyHeaderIndices={[0]}
       >
         <View style={styles.header}>
-        <View style={{flexDirection:'row'}}>
-             <TouchableOpacity onPress={ onCancel}>
-              <FontAwesomeIcon icon={faAngleLeft as IconProp} size={24} style={{marginTop:5}} />
-                    </TouchableOpacity>
-          <TextUI text={getHeaderText()} style={styles.headerTitle} />
-        </View>
-          <Text style={[styles.headerSubtitle,{marginLeft:26}]}>{getSubtitleText()}</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity onPress={onCancel}>
+              <FontAwesomeIcon icon={faAngleLeft as IconProp} size={24} style={{ marginTop: 5 }} />
+            </TouchableOpacity>
+            <TextUI text={getHeaderText()} style={styles.headerTitle} />
+          </View>
+          <Text style={[styles.headerSubtitle, { marginLeft: 26 }]}>{getSubtitleText()}</Text>
         </View>
 
         {formSections.map((section, index) => (
@@ -399,7 +450,6 @@ const ContractForm = ({
 
         {!isViewMode && (
           <View style={styles.buttonRow}>
-            
             <View style={[styles.buttonWrapper, onCancel && styles.buttonFlex]}>
               <ButtonBlue 
                 text={mode === 'add' ? "Create Contract" : "Update Contract"} 
@@ -449,8 +499,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     marginBottom: 20,
-    zIndex:10,
-    
+    zIndex: 10,
   },
   headerTitle: {
     fontSize: 28,
@@ -462,6 +511,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6B7280",
     fontWeight: "400",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  errorBox: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    width: '100%',
+    maxWidth: 400,
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorMessage: {
+    fontSize: 18,
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '500',
+    marginTop:10
+  },
+  errorButtonContainer: {
+    width: '100%',
+    marginTop: 8,
   },
   section: {
     marginHorizontal: 20,

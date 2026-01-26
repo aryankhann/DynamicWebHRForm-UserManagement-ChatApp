@@ -35,7 +35,7 @@
       }
       
       stopTypingTime = setTimeout(() => {
-        console.log('stop')
+        console.log('stopped typing')
         socket.emit('stoppedTyping', false,'other',roomCode);
       }, 3000);
     });

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import DatabaseService, { Contract } from '../backend/DatabaseServices';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -25,6 +26,13 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+const [toggle,setToggle]= useState(false)
+
+const handleToggle  = ()=>{
+
+  setToggle((prev)=>!prev)
+
+}
 
   useEffect(() => {
     loadContracts();
@@ -42,6 +50,7 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
       const allContracts = await DatabaseService.getAllContracts();
       setContracts(allContracts);
       console.log(allContracts)
+      
     } catch (error) {
       console.error('Error loading contracts:', error);
       Alert.alert('Error', 'Failed to load contracts');
@@ -64,8 +73,8 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
     navigation.navigate('ViewForm', { contractId });
   };
 
-  const handleEditContract = (contractId: number) => {
-    navigation.navigate('EditForm', { contractId });
+  const handleEditContract = (contractId: number,approved:boolean) => {
+    navigation.navigate('EditForm', { contractId,approved,toggle });
   };
 
   const handleDeleteContract = async (contractId: number, contractTitle: string) => {
@@ -103,16 +112,20 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
       onPress={() => handleViewContract(item.id!)}
       activeOpacity={0.7}
     >
-      <View style={styles.contractHeader}>
-        <View style={styles.contractInfo}>
-          <TextUI style={styles.contractTitle} text={item.contract_title || 'Untitled Contract'}></TextUI>
-          <TextUI style={styles.employeeName} text={item.employee_name|| 'Unknown Employee'}></TextUI>
-          <TextUI style={styles.contractType} text={item.contract_type || 'N/A'}></TextUI>
-        </View>
-        <View style={styles.statusBadge}>
-          <TextUI style={styles.statusText} text='Active'></TextUI>
-        </View>
-      </View>
+   <View style={styles.contractHeader}>
+  <View style={styles.contractInfo}>
+    <TextUI style={styles.contractTitle} text={item.contract_title || 'Untitled Contract'}></TextUI>
+    <TextUI style={styles.employeeName} text={item.employee_name|| 'Unknown Employee'}></TextUI>
+  </View>
+  <View style={styles.statusContainer}>
+    <View style={styles.statusBadge}>
+      <TextUI style={styles.statusText} text='Active'></TextUI>
+    </View>
+    <View style={[styles.statusBadge, item.approved ? styles.approvedBadge : styles.unapprovedBadge]}>
+      <TextUI style={[styles.statusText, item.approved ? styles.approvedText : styles.unapprovedText]} text={item.approved ? 'Approved' : 'Unapproved'}></TextUI>
+    </View>
+  </View>
+</View>
 
       <View style={styles.contractDetails}>
         <View style={styles.detailRow}>
@@ -123,10 +136,7 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
           <TextUI style={styles.detailLabel} text="End Date:"></TextUI>
           <TextUI style={styles.detailValue} text={item.end_date || 'N/A'}></TextUI>
         </View>
-        <View style={styles.detailRow}>
-          <TextUI style={styles.detailLabel} text='Department:'></TextUI>
-          <TextUI style={styles.detailValue} text={item.department || 'N/A'}></TextUI>
-        </View>
+        
       </View>
 
       <View style={styles.actionButtons}>
@@ -143,7 +153,8 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
           style={[styles.actionButton, styles.editButton]}
           onPress={(e) => {
             e.stopPropagation();
-            handleEditContract(item.id!);
+            handleEditContract(item.id!,item.approved!);
+            console.log('approved test: ',item.approved)
           }}
         >
           <Text style={styles.actionButtonText}>Edit</Text>
@@ -181,7 +192,17 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
           <TextUI style={styles.addButtonText} text='+ Add Contract'></TextUI>
         </TouchableOpacity>
       </View>
-
+      <View style={{width:'100%',alignItems:'center',marginTop:'5%'}}>
+<View style={{flexDirection:'row',width:'90%',justifyContent:'space-between',alignItems:'center'}}>
+        
+        <Text>Disable editing on approved records</Text>
+        <Switch trackColor={{false: '#767577',true: '#81b0ff'}}
+                thumbColor={toggle ? '#f4f3f4' : '#f4f3f4'}
+                onValueChange={handleToggle}
+                value={toggle}
+        ></Switch>
+        </View>
+      </View>
       {contracts.length === 0 ? (
         <View style={styles.emptyContainer}>
           <TextUI style={styles.emptyText} text="No contracts found"></TextUI>
@@ -197,6 +218,8 @@ const ContractScreen = ({ navigation }: ContractListScreenProps) => {
           onRefresh={handleRefresh}
         />
       )}
+
+      
     </View>
   );
 };
@@ -345,6 +368,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 40,
   },
+  statusContainer: {
+  gap: 5,
+  alignItems: 'flex-end',
+  justifyContent:'center'
+},
+approvedBadge: {
+  backgroundColor: '#D1FAE5',
+},
+unapprovedBadge: {
+  backgroundColor: '#FEF3C7',
+},
+approvedText: {
+  color: '#065F46',
+},
+unapprovedText: {
+  color: '#92400E',
+},
   emptyText: {
     fontSize: 18,
     fontWeight: '600',

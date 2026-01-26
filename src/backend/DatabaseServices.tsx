@@ -22,8 +22,10 @@ export interface Contract {
   notes?: string;
   custom_fields?: string;
   created_at?: string;
+  approved?: boolean;
   updated_at?: string;
 }
+
 export interface User {
   id?: number;
   name: string;
@@ -68,20 +70,20 @@ class DatabaseService {
     if (!this.db) return;
 
     try {
-     await this.db.executeSql(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        phone_number TEXT,
-        password TEXT NOT NULL,
-        is_active INTEGER DEFAULT 1,
-        user_image TEXT,
-        role TEXT DEFAULT 'user',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+      await this.db.executeSql(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          email TEXT UNIQUE NOT NULL,
+          phone_number TEXT,
+          password TEXT NOT NULL,
+          is_active INTEGER DEFAULT 1,
+          user_image TEXT,
+          role TEXT DEFAULT 'user',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
 
       await this.db.executeSql(`
         CREATE TABLE IF NOT EXISTS contracts (
@@ -103,6 +105,7 @@ class DatabaseService {
           description TEXT,
           notes TEXT,
           custom_fields TEXT,
+          approved INTEGER DEFAULT 1,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
@@ -127,108 +130,140 @@ class DatabaseService {
     }
   }
 
-//user methods
+  
+
+  //user methods
+ 
+ async getUserByName(name: string): Promise<User | any> {
+    if (!this.db) return null;
+
+    try {
+      const results = await this.db.executeSql(
+        'SELECT * FROM users WHERE name = ?',
+        [name]
+      );
+
+      if (results[0].rows.length > 0) {
+        const user = results[0].rows.item(0);
+        return {
+          ...user,
+          is_active: user.is_active === 1,
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+  }
   async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<number | null> {
-  if (!this.db) {
-    console.error('Database not initialized');
-    return null;
-  }
-
-  try {
-    const result = await this.db.executeSql(
-      `INSERT INTO users (name, email, phone_number, password, is_active, user_image, role) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        userData.name,
-        userData.email,
-        userData.phone_number || '',
-        userData.password,
-        userData.is_active ? 1 : 0,
-        userData.user_image || '',
-        userData.role || 'user'
-      ]
-    );
-
-    const userId = result[0].insertId;
-    console.log('User created with ID:', userId);
-    return userId;
-  } catch (error: any) {
-    if (error.message?.includes('UNIQUE constraint failed')) {
-      console.error('Email already exists');
-    } else {
-      console.error('Error creating user:', error);
+    if (!this.db) {
+      console.error('Database not initialized');
+      return null;
     }
-    return null;
-  }
+    
+
+    try {
+const userCheck = await this.getUserByName(userData.name)
+if(userCheck){
+  
+  console.log('user already exists')
+  return null
 }
-async updateUser(userId: number, userData: Partial<User>): Promise<boolean> {
-  if (!this.db) {
-    console.error('Database not initialized');
-    return false;
+
+      const result = await this.db.executeSql(
+        `INSERT INTO users (name, email, phone_number, password, is_active, user_image, role) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userData.name,
+          userData.email,
+          userData.phone_number || '',
+          userData.password,
+          userData.is_active ? 1 : 0,
+          userData.user_image || '',
+          userData.role || 'user'
+        ]
+      );
+
+      const userId = result[0].insertId;
+      console.log('User created with ID:', userId);
+      return userId;
+    } catch (error: any) {
+      if (error.message?.includes('UNIQUE constraint failed')) {
+        console.error('Email already exists');
+      } else {
+        console.error('Error creating user:', error);
+      }
+      return null;
+    }
   }
 
-  try {
-    const updates: string[] = [];
-    const values: any[] = [];
-
-    if (userData.name !== undefined) {
-      
-      updates.push('name = ?');
-      console.log('updates:',updates)
-      values.push(userData.name);
-      console.log('name',values)
-    }
-    if (userData.email !== undefined) {
-      updates.push('email = ?');
-      values.push(userData.email);
-    }
-    if (userData.phone_number !== undefined) {
-      updates.push('phone_number = ?');
-      values.push(userData.phone_number);
-    }
-    if (userData.password !== undefined) {
-      updates.push('password = ?');
-      values.push(userData.password);
-    }
-    if (userData.is_active !== undefined) {
-      updates.push('is_active = ?');
-      values.push(userData.is_active ? 1 : 0);
-    }
-    if (userData.user_image !== undefined) {
-      updates.push('user_image = ?');
-      values.push(userData.user_image);
-    }
-    if (userData.role !== undefined) {
-      updates.push('role = ?');
-      values.push(userData.role);
+  async updateUser(userId: number, userData: Partial<User>): Promise<boolean> {
+    if (!this.db) {
+      console.error('Database not initialized');
+      return false;
     }
 
-    updates.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(userId);
+    try {
+      const updates: string[] = [];
+      const values: any[] = [];
 
-    await this.db.executeSql(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
-      values
-    );
+      if (userData.name !== undefined) {
+        updates.push('name = ?');
+        console.log('updates:', updates);
+        values.push(userData.name);
+        console.log('name', values);
+      }
+      if (userData.email !== undefined) {
+        updates.push('email = ?');
+        values.push(userData.email);
+      }
+      if (userData.phone_number !== undefined) {
+        updates.push('phone_number = ?');
+        values.push(userData.phone_number);
+      }
+      if (userData.password !== undefined) {
+        updates.push('password = ?');
+        values.push(userData.password);
+      }
+      if (userData.is_active !== undefined) {
+        updates.push('is_active = ?');
+        values.push(userData.is_active ? 1 : 0);
+      }
+      if (userData.user_image !== undefined) {
+        updates.push('user_image = ?');
+        values.push(userData.user_image);
+      }
+      if (userData.role !== undefined) {
+        updates.push('role = ?');
+        values.push(userData.role);
+      }
 
-    console.log('User updated:', userId);
-    return true;
-  } catch (error: any) {
-    if (error.message?.includes('UNIQUE constraint failed')) {
-      console.error('Email already exists');
-    } else {
-      console.error('Error updating user:', error);
+      updates.push('updated_at = CURRENT_TIMESTAMP');
+      values.push(userId);
+
+      await this.db.executeSql(
+        `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+        values
+      );
+
+      console.log('User updated:', userId);
+      return true;
+    } catch (error: any) {
+      if (error.message?.includes('UNIQUE constraint failed')) {
+        console.error('Email already exists');
+      } else {
+        console.error('Error updating user:', error);
+      }
+      return false;
     }
-    return false;
   }
-}
 
   async registerUser(username: string, password: string): Promise<boolean> {
     if (!this.db) {
       console.error('Database not initialized');
       return false;
     }
-
 
     try {
       await this.db.executeSql(
@@ -247,106 +282,114 @@ async updateUser(userId: number, userData: Partial<User>): Promise<boolean> {
     }
   }
 
-  async loginUser(username: string, password: string): Promise<"admin" | "user" | false> {
-  if (!this.db) {
-    console.error('Database not initialized');
-    return false;
-  }
-
-  try {
-    const results = await this.db.executeSql(
-      'SELECT name, password, role FROM users WHERE name = ? AND password = ?',
-      [username, password]
-    );
-
-    if (results[0].rows.length > 0) {
-      const user = results[0].rows.item(0);
-      console.log('Login successful:', user.role);
-
-      return user.role; 
-    } else {
-      console.log('Invalid credentials');
+  async loginUser(username: string, password: string): Promise<"admin" | "user" |  false | 'not active'> {
+    if (!this.db) {
+      console.error('Database not initialized');
       return false;
     }
-  } catch (error) {
-    console.error('Error during login:', error);
-    return false;
-  }
-}
 
-async getUserById(userId: number): Promise<User | null> {
-  if (!this.db) return null;
+    try {
+      const results = await this.db.executeSql(
+        'SELECT name, password, role, is_active FROM users WHERE name = ? AND password = ?',
+        [username, password]
+      );
 
-  try {
-    const results = await this.db.executeSql(
-      'SELECT * FROM users WHERE id = ?',
-      [userId]
-    );
+      if (results[0].rows.length > 0) {
+        const user = results[0].rows.item(0);
+        console.log('inactive user: ',user.is_active)
+        if(user.is_active==0){
+          console.log('user is not active')
+          return 'not active'
+        }
+        console.log('Login successful:', user.role);
 
-    if (results[0].rows.length > 0) {
-      const user = results[0].rows.item(0);
-      return {
-        ...user,
-        is_active: user.is_active === 1,
-      };
+        return user.role;
+      } else {
+        console.log('Invalid credentials');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      return false;
     }
-    return null;
-  } catch (error) {
-    console.error('Error getting user:', error);
-    return null;
   }
-}
-async getAllUsersForAdmin(): Promise<User[]> {
-  if (!this.db) return [];
 
-  try {
-    const results = await this.db.executeSql(
-      'SELECT * FROM users ORDER BY created_at DESC'
-    );
+  async getUserById(userId: number): Promise<User | null> {
+    if (!this.db) return null;
 
-    const users: User[] = [];
-    for (let i = 0; i < results[0].rows.length; i++) {
-      const user = results[0].rows.item(i);
-      users.push({
-        ...user,
-        is_active: user.is_active === 1,
-      });
+    try {
+      const results = await this.db.executeSql(
+        'SELECT * FROM users WHERE id = ?',
+        [userId]
+      );
+
+      if (results[0].rows.length > 0) {
+        const user = results[0].rows.item(0);
+        return {
+          ...user,
+          is_active: user.is_active === 1,
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
     }
-
-    return users;
-  } catch (error) {
-    console.error('Error getting all users:', error);
-    return [];
   }
-}
-async deleteUser(userId: number): Promise<boolean> {
-  if (!this.db) return false;
 
-  try {
-    await this.db.executeSql('DELETE FROM users WHERE id = ?', [userId]);
-    console.log('User deleted:', userId);
-    return true;
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    return false;
+  async getAllUsersForAdmin(): Promise<User[]> {
+    if (!this.db) return [];
+
+    try {
+      const results = await this.db.executeSql(
+        'SELECT * FROM users ORDER BY created_at DESC'
+      );
+
+      const users: User[] = [];
+      for (let i = 0; i < results[0].rows.length; i++) {
+        const user = results[0].rows.item(i);
+        users.push({
+          ...user,
+          is_active: user.is_active === 1,
+        });
+      }
+
+      return users;
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
   }
-}
 
-async toggleUserStatus(userId: number): Promise<boolean> {
-  if (!this.db) return false;
+  async deleteUser(userId: number): Promise<boolean> {
+    if (!this.db) return false;
 
-  try {
-    await this.db.executeSql(
-      'UPDATE users SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [userId]
-    );
-    console.log('User status toggled:', userId);
-    return true;
-  } catch (error) {
-    console.error('Error toggling user status:', error);
-    return false;
+    try {
+      await this.db.executeSql('DELETE FROM users WHERE id = ?', [userId]);
+      console.log('User deleted:', userId);
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
   }
-}
+
+  async toggleUserStatus(userId: number): Promise<boolean> {
+    if (!this.db) return false;
+
+    try {
+      await this.db.executeSql(
+        'UPDATE users SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [userId]
+      );
+      console.log('User status toggled:', userId);
+      return true;
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      return false;
+    }
+  }
+
   async getAllUsers() {
     if (!this.db) return [];
 
@@ -354,14 +397,14 @@ async toggleUserStatus(userId: number): Promise<boolean> {
       const results = await this.db.executeSql(
         'SELECT id, name, created_at FROM users'
       );
-      console.log('results',results)
+      console.log('results', results);
       const users = [];
       const rows = results[0].rows;
-      
+
       for (let i = 0; i < rows.length; i++) {
         users.push(rows.item(i));
       }
-      console.log('users',users)
+      console.log('users', users);
       return users;
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -369,41 +412,43 @@ async toggleUserStatus(userId: number): Promise<boolean> {
     }
   }
 
- async getDashboardStats(): Promise<{
-  totalUsers: number;
-  totalContracts: number;
-  activeUsers: number;
-  inactiveUsers: number;
-}> {
-  if (!this.db) {
-    return { totalUsers: 0, totalContracts: 0, activeUsers: 0, inactiveUsers: 0 };
+  async getDashboardStats(): Promise<{
+    totalUsers: number;
+    totalContracts: number;
+    activeUsers: number;
+    inactiveUsers: number;
+  }> {
+    if (!this.db) {
+      return { totalUsers: 0, totalContracts: 0, activeUsers: 0, inactiveUsers: 0 };
+    }
+
+    try {
+      const userResult = await this.db.executeSql('SELECT COUNT(*) as count FROM users');
+      const totalUsers = userResult[0].rows.item(0).count;
+
+      const contractResult = await this.db.executeSql('SELECT COUNT(*) as count FROM contracts');
+      const totalContracts = contractResult[0].rows.item(0).count;
+
+      const activeResult = await this.db.executeSql('SELECT COUNT(*) as count FROM users WHERE is_active = 1');
+      
+      
+      const activeUsers = activeResult[0].rows.item(0).count;
+
+      const inactiveUsers = totalUsers - activeUsers;
+
+      return {
+        totalUsers,
+        totalContracts,
+        activeUsers,
+        inactiveUsers,
+      };
+    } catch (error) {
+      console.error('Error getting dashboard stats:', error);
+      return { totalUsers: 0, totalContracts: 0, activeUsers: 0, inactiveUsers: 0 };
+    }
   }
 
-  try {
-    const userResult = await this.db.executeSql('SELECT COUNT(*) as count FROM users');
-    const totalUsers = userResult[0].rows.item(0).count;
-
-    const contractResult = await this.db.executeSql('SELECT COUNT(*) as count FROM contracts');
-    const totalContracts = contractResult[0].rows.item(0).count;
-
-    const activeResult = await this.db.executeSql('SELECT COUNT(*) as count FROM users WHERE is_active = 1');
-    const activeUsers = activeResult[0].rows.item(0).count;
-
-    const inactiveUsers = totalUsers - activeUsers;
-
-    return {
-      totalUsers,
-      totalContracts,
-      activeUsers,
-      inactiveUsers,
-    };
-  } catch (error) {
-    console.error('Error getting dashboard stats:', error);
-    return { totalUsers: 0, totalContracts: 0, activeUsers: 0, inactiveUsers: 0 };
-  }
-}
-
-//contract methods
+  //contract methods
   async createContract(contractData: Contract, documents?: any[]): Promise<number | null> {
     if (!this.db) {
       console.error('Database not initialized');
@@ -415,7 +460,7 @@ async toggleUserStatus(userId: number): Promise<boolean> {
         employee_id, employee_name, contract_type, contract_title,
         start_date, end_date, employee_type, employee_category,
         grade, grade_step, station, department, designation,
-        performance, description, notes, custom_fields
+        performance, description, notes, custom_fields, approved
       } = contractData;
 
       const result = await this.db.executeSql(
@@ -423,20 +468,20 @@ async toggleUserStatus(userId: number): Promise<boolean> {
           employee_id, employee_name, contract_type, contract_title,
           start_date, end_date, employee_type, employee_category,
           grade, grade_step, station, department, designation,
-          performance, description, notes, custom_fields
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          performance, description, notes, custom_fields, approved
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           employee_id || '', employee_name || '', contract_type || '', contract_title || '',
           start_date || '', end_date || '', employee_type || '', employee_category || '',
           grade || '', grade_step || '', station || '', department || '', designation || '',
-          performance || '', description || '', notes || '', custom_fields || ''
+          performance || '', description || '', notes || '', custom_fields || '',
+          approved ? 1 : 0
         ]
       );
 
       const contractId = result[0].insertId;
       console.log('Contract created with ID:', contractId);
 
-      
       if (documents && documents.length > 0) {
         await this.saveDocuments(contractId, documents);
       }
@@ -459,7 +504,7 @@ async toggleUserStatus(userId: number): Promise<boolean> {
         employee_id, employee_name, contract_type, contract_title,
         start_date, end_date, employee_type, employee_category,
         grade, grade_step, station, department, designation,
-        performance, description, notes, custom_fields
+        performance, description, notes, custom_fields, approved
       } = contractData;
 
       await this.db.executeSql(
@@ -467,7 +512,7 @@ async toggleUserStatus(userId: number): Promise<boolean> {
           employee_id = ?, employee_name = ?, contract_type = ?, contract_title = ?,
           start_date = ?, end_date = ?, employee_type = ?, employee_category = ?,
           grade = ?, grade_step = ?, station = ?, department = ?, designation = ?,
-          performance = ?, description = ?, notes = ?, custom_fields = ?,
+          performance = ?, description = ?, notes = ?, custom_fields = ?, approved = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`,
         [
@@ -475,6 +520,7 @@ async toggleUserStatus(userId: number): Promise<boolean> {
           start_date || '', end_date || '', employee_type || '', employee_category || '',
           grade || '', grade_step || '', station || '', department || '', designation || '',
           performance || '', description || '', notes || '', custom_fields || '',
+          approved ? 1 : 0,
           contractId
         ]
       );
@@ -503,7 +549,11 @@ async toggleUserStatus(userId: number): Promise<boolean> {
       );
 
       if (results[0].rows.length > 0) {
-        return results[0].rows.item(0);
+        const contract = results[0].rows.item(0);
+        return {
+          ...contract,
+          approved: contract.approved === 1,
+        };
       }
       return null;
     } catch (error) {
@@ -522,9 +572,14 @@ async toggleUserStatus(userId: number): Promise<boolean> {
 
       const contracts: Contract[] = [];
       for (let i = 0; i < results[0].rows.length; i++) {
-        contracts.push(results[0].rows.item(i));
+        const contract = results[0].rows.item(i);
+        contracts.push({
+          ...contract,
+          approved: contract.approved === 1,
+        });
       }
 
+      console.log(contracts);
       return contracts;
     } catch (error) {
       console.error('Error getting all contracts:', error);
@@ -561,7 +616,11 @@ async toggleUserStatus(userId: number): Promise<boolean> {
 
       const contracts: Contract[] = [];
       for (let i = 0; i < results[0].rows.length; i++) {
-        contracts.push(results[0].rows.item(i));
+        const contract = results[0].rows.item(i);
+        contracts.push({
+          ...contract,
+          approved: contract.approved === 1,
+        });
       }
 
       return contracts;
@@ -571,7 +630,7 @@ async toggleUserStatus(userId: number): Promise<boolean> {
     }
   }
 
-//document methods
+  //document methods
   private async saveDocuments(contractId: number, documents: any[]): Promise<void> {
     if (!this.db) return;
 
@@ -624,9 +683,6 @@ async toggleUserStatus(userId: number): Promise<boolean> {
     }
   }
 
-
-
-
   async dropAllTables() {
     if (!this.db) return;
 
@@ -634,14 +690,11 @@ async toggleUserStatus(userId: number): Promise<boolean> {
       await this.db.executeSql('DROP TABLE IF EXISTS contract_documents');
       await this.db.executeSql('DROP TABLE IF EXISTS contracts');
       await this.db.executeSql('DROP TABLE IF EXISTS users');
-      console.log('All tables dropped');
+      console.log('all tables dropped');
     } catch (error) {
       console.error('Error dropping tables:', error);
     }
   }
-  
-
- 
 }
 
 export default new DatabaseService();

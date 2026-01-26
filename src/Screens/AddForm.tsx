@@ -42,7 +42,7 @@ console.log("FINAL formData before submit:", formData);
         description: formData.desc || '',
         notes: formData.notes || '',
         custom_fields: JSON.stringify(formData.CustomField_130 || {}),
-
+        approved: true
 
       };
 

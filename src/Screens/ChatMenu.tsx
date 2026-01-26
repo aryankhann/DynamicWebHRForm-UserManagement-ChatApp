@@ -20,7 +20,6 @@ const ChatMenu = ({ navigation }: any) => {
   const handleGenerateCode = ()=>{
   const code = Math.random().toString(32).substring(2, 8);
 
-setRoomCode(Math.random().toString(32).substring(2,8))
 navigation.navigate("ChatApp",{roomCode:code})
   }
   const handleJoinRoom = () => {

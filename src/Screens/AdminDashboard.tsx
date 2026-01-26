@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import DatabaseService from '../backend/DatabaseServices';
+import DatabaseServices from '../backend/DatabaseServices';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
@@ -55,7 +55,7 @@ const AdminDashboard = ({ navigation }: any) => {
   const loadDashboardStats = async () => {
     try {
       setLoading(true);
-      const dashboardStats = await DatabaseService.getDashboardStats();
+      const dashboardStats = await DatabaseServices.getDashboardStats();
       setStats(dashboardStats);
     } catch (error) {
       console.error('Error loading dashboard stats:', error);

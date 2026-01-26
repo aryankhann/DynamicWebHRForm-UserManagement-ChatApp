@@ -15,15 +15,12 @@ import {
   faShieldAlt
 } from '@fortawesome/free-solid-svg-icons';
 
-import { io } from 'socket.io-client';
 
 const Login = ({ navigation }: any) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-const socket = io("http://localhost:3000",{
-  autoConnect:false
-});
+
 
   useEffect(() => {
     initDatabase();
@@ -69,7 +66,11 @@ const socket = io("http://localhost:3000",{
             },
           },
         ]);
-      } else {
+      }
+      else if (success == 'not active'){
+        Alert.alert('Failed','User is inactive')
+      }
+      else {
         Alert.alert('Error', 'Invalid username or password');
       }
     } catch (error) {
